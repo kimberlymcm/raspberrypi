@@ -60,7 +60,7 @@ def main(args):
             myAWSIoTMQTTClient.publish(topic, messageJson, 1)
             print('Published topic %s: %s\n' % (topic, messageJson))
             loopCount += 1
-            time.sleep(10) # Once a minute
+            time.sleep(30) # Once a minute
         except Exception as e:
             print(e)
 
