@@ -3,26 +3,11 @@ import time
 from subprocess import PIPE, Popen, check_output
 
 import ST7735
-from bme280 import BME280
-from pms5003 import PMS5003, ReadTimeoutError, SerialTimeoutError
+from pms5003 import ReadTimeoutError, SerialTimeoutError
 from enviroplus import gas
 
-try:
-    # Transitional fix for breaking change in LTR559
-    from ltr559 import LTR559
-    ltr559 = LTR559()
-except ImportError:
-    import ltr559
-
-try:
-    from smbus2 import SMBus
-except ImportError:
-    from smbus import SMBus
-
 # Read values from BME280 and return as dict
-def read_bme280():
-    bus = SMBus(1)
-    bme280 = BME280(i2c_dev=bus)
+def read_bme280(bme280, ltr559):
     # Compensation factor for temperature
     comp_factor = 2.25
     values = {}
@@ -42,8 +27,7 @@ def read_bme280():
     return values
 
 # Read values PMS5003 and return as dict
-def read_pms5003():
-    pms5003 = PMS5003()
+def read_pms5003(pms5003):
     values = {}
     try:
         pm_values = pms5003.read()  # int

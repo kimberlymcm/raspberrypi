@@ -6,10 +6,23 @@ import argparse
 import json
 from datetime import date, datetime
 
+from bme280 import BME280
+from pms5003 import PMS5003, ReadTimeoutError, SerialTimeoutError
+
+try:
+    # Transitional fix for breaking change in LTR559
+    from ltr559 import LTR559
+    ltr559 = LTR559()
+except ImportError:
+    import ltr559
+
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
+
+from smbus import SMBus
 
 from aws_utils import configureLogging, configMQTTClient, customCallback
 from enviro_utils import read_bme280, read_pms5003
+
 
 # Read in command-line parameters
 #python3 aws-iot-device-sdk-python/samples/basicPubSub/basicPubSub.py -e a3tis9f9gjx3kh-ats.iot.us-west-2.amazonaws.com -r root-CA.crt -c enviro.cert.pem -k enviro.private.key
@@ -43,13 +56,18 @@ def main(args):
     myAWSIoTMQTTClient.subscribe(topic, 1, customCallback)
     time.sleep(2)
 
+    # Sensor objects
+    bus = SMBus(1)
+    bme280 = BME280(i2c_dev=bus)
+    pms5003 = PMS5003()
+
     # Publish to the same topic in a loop forever
     loopCount = 0
     while True:
         try:
             message = {}
-            message = read_bme280()
-            pms_values = read_pms5003()
+            message = read_bme280(bme280, ltr559)
+            pms_values = read_pms5003(pms5003)
             message.update(pms_values)
             message['device_id'] = 'enviro'
             
@@ -60,7 +78,7 @@ def main(args):
             myAWSIoTMQTTClient.publish(topic, messageJson, 1)
             print('Published topic %s: %s\n' % (topic, messageJson))
             loopCount += 1
-            time.sleep(30) # Once a minute
+            time.sleep(30) # Twice a minute
         except Exception as e:
             print(e)
 
