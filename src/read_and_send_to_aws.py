@@ -66,11 +66,12 @@ def main(args):
     while True:
         try:
             message = {}
-            message = read_bme280(bme280, ltr559)
+            message_data = read_bme280(bme280, ltr559)
             pms_values = read_pms5003(pms5003)
-            message.update(pms_values)
-            message['device_id'] = 'enviro'
-            
+            message_data.update(pms_values)
+            message['data'] = message_data
+
+            message['device_id'] = 'enviro'            
             now = datetime.utcnow() # get date and time
             current_time = now.strftime('%Y-%m-%dT%H:%M:%SZ')
             message['time'] = current_time
@@ -100,7 +101,7 @@ if __name__ == "__main__":
     parser.add_argument("-id", "--clientId", action="store", dest="clientId",
                         help="Targeted client id", default="basicPubSub")
     parser.add_argument("-t", "--topic", action="store", dest="topic",
-                        help="Targeted topic", default="sdk/test/Python")
+                        help="Targeted topic", default="sensor/enviro/livingroom")
 
     args = parser.parse_args()
     main(args)
