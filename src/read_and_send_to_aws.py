@@ -62,7 +62,6 @@ def main(args):
     pms5003 = PMS5003()
 
     # Publish to the same topic in a loop forever
-    loopCount = 0
     while True:
         try:
             message = {}
@@ -78,8 +77,7 @@ def main(args):
             messageJson = json.dumps(message)
             myAWSIoTMQTTClient.publish(topic, messageJson, 1)
             print('Published topic %s: %s\n' % (topic, messageJson))
-            loopCount += 1
-            time.sleep(300) # Once every 5 minutes
+            time.sleep(60) # Once a minute
         except Exception as e:
             print(e)
 
